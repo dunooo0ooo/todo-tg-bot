@@ -6,14 +6,9 @@ import (
 	"github.com/go-telegram/bot/models"
 	"os"
 	"os/signal"
+	"to-do-list/internal/bot-service/handlers"
 	"to-do-list/pkg/systems"
 )
-
-const helpText = `Вот список доступных команд:
-1. Добавить задание (/add_task)
-2. Удалить задание (/delete_task)
-3. Список заданий (/show_task)
-4. Изменить задание (/change_task)`
 
 func main() {
 	token := systems.TakeToken()
@@ -33,38 +28,61 @@ func main() {
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+
 	if update.Message != nil {
 		switch update.Message.Text {
 		case "/start":
-			b.SendMessage(ctx, &bot.SendMessageParams{
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text:   "Привет!" + " " + update.Message.Chat.FirstName + " " + update.Message.Chat.LastName,
 			})
+			if err != nil {
+				return
+			}
 		case "/help":
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: update.Message.Chat.ID,
-				Text:   helpText,
-			})
+			handlers.Help(ctx, b, update)
 		case "/add_task":
-			b.SendMessage(ctx, &bot.SendMessageParams{
+			//_, err := handlers.Add(ctx, b, update)
+			//if err != nil {
+			//	return
+			//}
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
-				Text:   "123",
+				Text:   "Напишите название задачи",
 			})
+			if err != nil {
+				return
+			}
 		case "/delete_task":
-			b.SendMessage(ctx, &bot.SendMessageParams{
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text:   "123",
 			})
+			if err != nil {
+				return
+			}
 		case "/change_task":
-			b.SendMessage(ctx, &bot.SendMessageParams{
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text:   "123",
 			})
+			if err != nil {
+				return
+			}
 		case "/show_task":
-			b.SendMessage(ctx, &bot.SendMessageParams{
+			_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text:   "123",
+			})
+			if err != nil {
+				return
+			}
+		default:
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "Используйте команду /help, чтобы узнать возможности бота",
 			})
 		}
+
 	}
 }
