@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -36,10 +35,10 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) AddTask(ctx context.Context, userId int64, taskName, taskDescription string, dueDate time.Time) (int, error) {
+func (s *Storage) AddTask(userId int64, taskName string, taskDescription string, dueDate time.Time) (int, error) {
 	const op = "storage.sqlite.AddTask"
 
-	res, err := s.db.ExecContext(ctx, `INSERT INTO tasks(user_id, name, description, due_date) VALUES (?, ?, ?, ?)`,
+	res, err := s.db.Exec(`INSERT INTO tasks(user_id, name, description, due_date) VALUES (?, ?, ?, ?)`,
 		userId, taskName, taskDescription, dueDate)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
@@ -53,10 +52,10 @@ func (s *Storage) AddTask(ctx context.Context, userId int64, taskName, taskDescr
 	return int(lastID), nil
 }
 
-func (s *Storage) GetTasks(ctx context.Context, userId int64) ([]task.Task, error) {
+func (s *Storage) GetTasks(userId int64) ([]task.Task, error) {
 	const op = "storage.sqlite.GetTasks"
 
-	rows, err := s.db.QueryContext(ctx, `SELECT id, user_id, name, description, due_date, created_at FROM tasks WHERE user_id = ?`, userId)
+	rows, err := s.db.Query(`SELECT id, user_id, name, description, due_date, created_at FROM tasks WHERE user_id = ?`, userId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -79,20 +78,20 @@ func (s *Storage) GetTasks(ctx context.Context, userId int64) ([]task.Task, erro
 	return tasks, nil
 }
 
-func (s *Storage) DeleteTask(ctx context.Context, userId int64, taskName string) error {
+func (s *Storage) DeleteTask(userId int64, taskName string) error {
 	const op = "storage.sqlite.DeleteTask"
 
-	_, err := s.db.ExecContext(ctx, `DELETE FROM tasks WHERE user_id = ? AND name = ?`, userId, taskName)
+	_, err := s.db.Exec(`DELETE FROM tasks WHERE user_id = ? AND name = ?`, userId, taskName)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
 }
 
-func (s *Storage) ChangeTask(ctx context.Context, taskId int, newName string, newDescription string, newDueDate time.Time) error {
+func (s *Storage) ChangeTask(taskId int, newName string, newDescription string, newDueDate time.Time) error {
 	const op = "storage.sqlite.ChangeTask"
 
-	_, err := s.db.ExecContext(ctx, "UPDATE tasks SET name = ?, description = ?, due_date = ? WHERE id = ?", newName, newDescription, newDueDate, taskId)
+	_, err := s.db.Exec("UPDATE tasks SET name = ?, description = ?, due_date = ? WHERE id = ?", newName, newDescription, newDueDate, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
