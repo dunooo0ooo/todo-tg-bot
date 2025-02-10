@@ -88,7 +88,7 @@ func (s *Storage) DeleteTask(userId int64, taskName string) error {
 	return nil
 }
 
-func (s *Storage) ChangeTask(taskId int, newName string, newDescription string, newDueDate time.Time) error {
+func (s *Storage) ChangeTask(taskId int64, newName string, newDescription string, newDueDate time.Time) error {
 	const op = "storage.sqlite.ChangeTask"
 
 	_, err := s.db.Exec("UPDATE tasks SET name = ?, description = ?, due_date = ? WHERE id = ?", newName, newDescription, newDueDate, taskId)
