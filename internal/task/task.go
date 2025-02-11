@@ -1,10 +1,12 @@
 package task
 
+import "time"
+
 type Task struct {
-	Id          int    `json:"id"`
-	UserId      int64  `json:"user_id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	DueDate     string `json:"due_date"`
-	CreatedAt   string `json:"created_at"`
+	ID          int64     `gorm:"primaryKey" json:"id"`
+	UserID      int64     `gorm:"index" json:"user_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"due_date"`
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 }

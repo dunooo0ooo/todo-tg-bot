@@ -15,12 +15,12 @@ type AddRequest struct {
 }
 
 type AddResponse struct {
-	TaskID int    `json:"task_id"`
+	TaskID int64  `json:"task_id"`
 	Error  string `json:"error,omitempty"`
 }
 
 type Adder interface {
-	AddTask(userId int64, taskName string, taskDescription string, dueDate time.Time) (int, error)
+	AddTask(userId int64, taskName string, taskDescription string, dueDate time.Time) (int64, error)
 }
 
 func Add(adder Adder) http.HandlerFunc {

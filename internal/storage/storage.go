@@ -1,33 +1,27 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 	"to-do-list/internal/task"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Storage struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func New(storagePath string) (*Storage, error) {
-	const op = "storage.sqlite.NewStorage"
+func New(dsn string) (*Storage, error) {
+	const op = "storage.gorm.NewStorage"
 
-	db, err := sql.Open("sqlite3", storagePath)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = db.Exec(`
-    CREATE TABLE IF NOT EXISTS tasks (
-    	id INTEGER PRIMARY KEY AUTOINCREMENT,
-    	user_id INTEGER NOT NULL,
-    	name TEXT NOT NULL,
-    	description TEXT,
-    	due_date DATETIME,                    
-    	created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-    `)
+	err = db.AutoMigrate(&task.Task{})
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -35,65 +29,60 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) AddTask(userId int64, taskName string, taskDescription string, dueDate time.Time) (int, error) {
-	const op = "storage.sqlite.AddTask"
+func (s *Storage) AddTask(userId int64, name, description string, dueDate time.Time) (int64, error) {
+	const op = "storage.gorm.AddTask"
 
-	res, err := s.db.Exec(`INSERT INTO tasks(user_id, name, description, due_date) VALUES (?, ?, ?, ?)`,
-		userId, taskName, taskDescription, dueDate)
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+	task := task.Task{
+		UserID:      userId,
+		Name:        name,
+		Description: description,
+		DueDate:     dueDate,
 	}
 
-	lastID, err := res.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+	result := s.db.Create(&task)
+	if result.Error != nil {
+		return 0, fmt.Errorf("%s: %w", op, result.Error)
 	}
 
-	return int(lastID), nil
+	return task.ID, nil
 }
 
 func (s *Storage) GetTasks(userId int64) ([]task.Task, error) {
-	const op = "storage.sqlite.GetTasks"
-
-	rows, err := s.db.Query(`SELECT id, user_id, name, description, due_date, created_at FROM tasks WHERE user_id = ?`, userId)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	defer rows.Close()
+	const op = "storage.gorm.GetTasks"
 
 	var tasks []task.Task
-	for rows.Next() {
-		var t task.Task
-		err := rows.Scan(&t.Id, &t.UserId, &t.Name, &t.Description, &t.DueDate, &t.CreatedAt)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", op, err)
-		}
-		tasks = append(tasks, t)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+	result := s.db.Where("user_id = ?", userId).Find(&tasks)
+	if result.Error != nil {
+		return nil, fmt.Errorf("%s: %w", op, result.Error)
 	}
 
 	return tasks, nil
 }
 
 func (s *Storage) DeleteTask(userId int64, taskName string) error {
-	const op = "storage.sqlite.DeleteTask"
+	const op = "storage.gorm.DeleteTask"
 
-	_, err := s.db.Exec(`DELETE FROM tasks WHERE user_id = ? AND name = ?`, userId, taskName)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	result := s.db.Delete(&task.Task{}, userId, taskName)
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", op, result.Error)
 	}
+
 	return nil
 }
 
-func (s *Storage) ChangeTask(taskId int64, newName string, newDescription string, newDueDate time.Time) error {
-	const op = "storage.sqlite.ChangeTask"
+func (s *Storage) ChangeTask(taskId int64, newName, newDescription string, newDueDate time.Time) error {
+	const op = "storage.gorm.ChangeTask"
 
-	_, err := s.db.Exec("UPDATE tasks SET name = ?, description = ?, due_date = ? WHERE id = ?", newName, newDescription, newDueDate, taskId)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+	result := s.db.Model(&task.Task{}).
+		Where("id = ?", taskId).
+		Updates(task.Task{
+			Name:        newName,
+			Description: newDescription,
+			DueDate:     newDueDate,
+		})
+
+	if result.Error != nil {
+		return fmt.Errorf("%s: %w", op, result.Error)
 	}
 
 	return nil

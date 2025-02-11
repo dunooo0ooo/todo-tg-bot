@@ -34,11 +34,19 @@ func ShowTasks(shower Shower) http.HandlerFunc {
 			return
 		}
 
-		task, err := shower.GetTasks(req.UserId)
+		tasks, err := shower.GetTasks(req.UserId)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("%s: error getting tasks: %v", op, err), http.StatusInternalServerError)
 			return
 		}
 
+		resp := ShowResponse{Tasks: tasks}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, fmt.Sprintf("%s: error encoding response: %v", op, err), http.StatusInternalServerError)
+			return
+		}
 	}
 }

@@ -39,17 +39,17 @@ func ChangeHandler(ch Changer) http.HandlerFunc {
 
 		newDueDate, err := time.Parse("2006-01-02", req.DueDate)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("%s: invalid request body: %v", op, err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("%s: invalid due_date format (expected YYYY-MM-DD): %v", op, err), http.StatusBadRequest)
+			return
 		}
 
-		var resp ChangeResponse
 		err = ch.ChangeTask(req.TaskId, req.Name, req.Description, newDueDate)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("%s: failed to change task: %v", op, err), http.StatusInternalServerError)
 			return
 		}
 
-		resp = ChangeResponse{Error: err.Error()}
+		resp := ChangeResponse{}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
