@@ -39,7 +39,7 @@ func DeleteHandler(d Deleter) http.HandlerFunc {
 		if err != nil {
 			resp.Error = err.Error()
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(resp)
 			return
 		}

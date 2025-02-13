@@ -38,9 +38,9 @@ func Add(adder Adder) http.HandlerFunc {
 			return
 		}
 
-		dueDate, err := time.Parse(time.RFC3339, req.DueDate)
+		dueDate, err := time.Parse("2006-01-02", req.DueDate)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("%s: invalid due_date format, use RFC3339", op), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("%s: invalid due_date format (expected YYYY-MM-DD): %v", op, err), http.StatusBadRequest)
 			return
 		}
 
