@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +12,21 @@ import (
 )
 
 func main() {
-	dsn := "host=localhost user=postgres password=postgres dbname=todo_list port=5432 sslmode=disable TimeZone=UTC"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Ошибка загрузки .env файла")
+	}
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_SSLMODE"),
+		os.Getenv("DB_TIMEZONE"),
+	)
 
 	db, err := storage.New(dsn)
 	if err != nil {
