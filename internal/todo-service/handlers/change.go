@@ -37,6 +37,16 @@ func ChangeHandler(ch Changer) http.HandlerFunc {
 			return
 		}
 
+		if req.TaskId == 0 {
+			http.Error(w, fmt.Sprintf("%s: task_id is required", op), http.StatusBadRequest)
+			return
+		}
+
+		if req.Name == "" {
+			http.Error(w, fmt.Sprintf("%s: name is required", op), http.StatusBadRequest)
+			return
+		}
+
 		newDueDate, err := time.Parse("2006-01-02", req.DueDate)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("%s: invalid due_date format (expected YYYY-MM-DD): %v", op, err), http.StatusBadRequest)

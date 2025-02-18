@@ -73,19 +73,24 @@ func (s *Storage) DeleteTask(userId int64, taskName string) error {
 
 	return nil
 }
+
 func (s *Storage) ChangeTask(taskId int64, newName, newDescription string, newDueDate time.Time) error {
 	const op = "storage.gorm.ChangeTask"
 
 	result := s.db.Model(&task.Task{}).
 		Where("id = ?", taskId).
-		Updates(task.Task{
-			Name:        newName,
-			Description: newDescription,
-			DueDate:     newDueDate,
+		Updates(map[string]interface{}{
+			"name":        newName,
+			"description": newDescription,
+			"due_date":    newDueDate,
 		})
 
 	if result.Error != nil {
 		return fmt.Errorf("%s: %w", op, result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("%s: task not found", op)
 	}
 
 	return nil
