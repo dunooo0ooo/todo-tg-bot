@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"os"
 	"to-do-list/internal/storage"
-	"to-do-list/internal/todo-service/handlers"
+	"to-do-list/internal/todo-service/handlers/add"
+	"to-do-list/internal/todo-service/handlers/change"
+	"to-do-list/internal/todo-service/handlers/delete"
+	"to-do-list/internal/todo-service/handlers/show"
 )
 
 func main() {
@@ -36,10 +39,10 @@ func main() {
 
 	router := chi.NewRouter()
 
-	router.Post("/add/task", handlers.Add(db))
-	router.Get("/tasks", handlers.ShowTasks(db))
-	router.Delete("/delete/task", handlers.DeleteHandler(db))
-	router.Put("/change/task", handlers.ChangeHandler(db))
+	router.Post("/add/task", add.Add(db))
+	router.Get("/tasks", show.ShowTasks(db))
+	router.Delete("/delete/task", delete.DeleteHandler(db))
+	router.Put("/change/task", change.ChangeHandler(db))
 
 	srv := &http.Server{
 		Addr:    "localhost:3000",
