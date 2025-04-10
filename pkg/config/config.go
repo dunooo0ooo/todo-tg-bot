@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 )
 
@@ -20,6 +21,10 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
+	err := godotenv.Load()
+	if err != nil {
+		return nil, err
+	}
 	config := &Config{
 		BotToken:   os.Getenv("BOT_TOKEN"),
 		DBHost:     os.Getenv("DB_HOST"),
