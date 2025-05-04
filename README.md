@@ -16,7 +16,6 @@ Telegram бот для управления списком задач с воз�
 - Go 1.24
 - PostgreSQL
 - Telegram Bot Token
-- Apache Kafka
 
 ## Установка
 
@@ -72,3 +71,6 @@ docker compose up -d
 ```bash
 go test -v ./...
 ```
+
+### TODO
+- Add notification service using Kafka
